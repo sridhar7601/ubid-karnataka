@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Data (keep synthetic, ignore large files)
+*.csv
+*.parquet
+!**/data/synthetic_*.csv
+!**/data/sample_*.csv
+
+# Logs
+*.log
+logs/
+
+# Model artifacts
+*.pkl
+*.model
+*.pt
+*.onnx
