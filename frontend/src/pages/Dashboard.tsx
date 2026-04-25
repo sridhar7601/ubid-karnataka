@@ -9,13 +9,14 @@ import {
   CheckCircle2,
   Loader2,
 } from 'lucide-react';
-import { getRecordStats, uploadRecords, runLinkage } from '../api';
+import { getRecordStats, uploadRecords, runLinkage, listUnifiedEntities } from '../api';
 import type { RecordStats, LinkageRunResult } from '../api';
 
 const SOURCE_SYSTEMS = ['GST', 'MCA', 'Udyam'] as const;
 
 export default function Dashboard() {
   const [stats, setStats] = useState<RecordStats | null>(null);
+  const [unifiedCount, setUnifiedCount] = useState<number>(0);
   const [statsError, setStatsError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -34,7 +35,20 @@ export default function Dashboard() {
     try {
       setStatsError('');
       const data = await getRecordStats();
-      setStats(data);
+      // Normalize by_source keys to lowercase for case-insensitive lookup
+      const normalized: RecordStats = {
+        ...data,
+        by_source: Object.fromEntries(
+          Object.entries(data.by_source ?? {}).map(([k, v]) => [k.toLowerCase(), v]),
+        ) as Record<string, number>,
+      };
+      setStats(normalized);
+      try {
+        const entities = await listUnifiedEntities();
+        setUnifiedCount(entities.length);
+      } catch {
+        setUnifiedCount(0);
+      }
     } catch (e: unknown) {
       setStatsError(e instanceof Error ? e.message : 'Failed to load stats');
     } finally {
@@ -127,7 +141,7 @@ export default function Dashboard() {
                 <StatCard
                   key={s}
                   label={`${s} Records`}
-                  value={stats.by_source[s] ?? 0}
+                  value={stats.by_source?.[s.toLowerCase()] ?? 0}
                   icon={Icon}
                   color="cyan"
                 />
@@ -136,7 +150,7 @@ export default function Dashboard() {
             {/* Unified */}
             <StatCard
               label="Unified Entities"
-              value={stats.unified_count}
+              value={unifiedCount}
               icon={Users}
               color="emerald"
             />
@@ -304,7 +318,7 @@ function StatCard({
         </div>
         <div>
           <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-          <p className="text-2xl font-bold text-gray-900">{value.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-gray-900">{(value ?? 0).toLocaleString()}</p>
         </div>
       </div>
     </div>

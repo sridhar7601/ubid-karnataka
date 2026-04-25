@@ -79,7 +79,8 @@ export async function listRecords(sourceSystem?: string): Promise<Record[]> {
   if (sourceSystem) params.set('source_system', sourceSystem);
   const res = await fetch(`${BASE}/records/?${params}`);
   if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  const data = await res.json();
+  return data.records ?? data;
 }
 
 export async function getRecordStats(): Promise<RecordStats> {
@@ -107,7 +108,8 @@ export async function getLinkageResults(params?: {
   if (params?.status) search.set('status', params.status);
   const res = await fetch(`${BASE}/linkage/results?${search}`);
   if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  const data = await res.json();
+  return data.results ?? data;
 }
 
 export async function reviewLinkage(id: number, decision: 'confirmed' | 'rejected'): Promise<LinkagePair> {
@@ -131,7 +133,8 @@ export async function listUnifiedEntities(params?: {
   if (params?.search) search.set('search', params.search);
   const res = await fetch(`${BASE}/unified/?${search}`);
   if (!res.ok) throw new Error(await res.text());
-  return res.json();
+  const data = await res.json();
+  return data.entities ?? data;
 }
 
 export async function getUnifiedEntity(ubid: string): Promise<UnifiedEntity> {
