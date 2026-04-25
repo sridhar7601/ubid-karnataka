@@ -4,6 +4,14 @@ An AI-powered entity resolution platform that links business records scattered a
 
 > **PanIIT AI for Bharat Hackathon** — Theme 1: Unified Business Identifier and Active Business Intelligence
 
+
+## 🎥 Demo Video
+
+[![UBID Karnataka — 5-min walkthrough](demo/video/poster.jpg)](demo/video/demo.mp4)
+
+> Click the thumbnail above, or [watch directly](demo/video/demo.mp4). Voiceover by ElevenLabs (Sarah). 1920×1080.
+> Pipeline (TTS → Chrome headless screen capture → ffmpeg) is reproducible — see [`demo/video/`](demo/video/).
+
 ## Quick Start
 
 ### Backend
