@@ -1,0 +1,94 @@
+---
+title: Theme 1 — UBID Platform Architecture
+config:
+  theme: base
+  themeVariables:
+    primaryColor: '#0ea5e9'
+    primaryTextColor: '#fff'
+    primaryBorderColor: '#0369a1'
+    lineColor: '#64748b'
+    fontFamily: 'Inter, system-ui, sans-serif'
+---
+flowchart TB
+    subgraph Sources["SOURCE SYSTEMS (40+ siloed registries)"]
+      GST["GST<br/>(440 records)"]
+      MCA["MCA<br/>(351 records)"]
+      UDYAM["Udyam<br/>(440 records)"]
+      OTHERS["...Shop · Factories · Labour ·<br/>KSPCB · ESCOMs · Fire · Food Safety"]
+    end
+
+    subgraph Resolve["ENTITY RESOLUTION (Part A)"]
+      BLOCK["Block by pincode<br/>(reduces O(N²) candidates)"]
+      DETERM["Deterministic Match<br/>PAN / GSTIN / Udyam exact<br/>(score = 1.0)"]
+      PROB["Probabilistic Match<br/>rapidfuzz Jaro-Winkler<br/>+ token-sort"]
+      TIER["3-Tier Confidence<br/>HIGH ≥ 0.9 (auto-link)<br/>MEDIUM 0.7–0.9 (review)<br/>LOW < 0.7 (separate)"]
+    end
+
+    subgraph Lifecycle["LIFECYCLE INFERENCE (Part B)"]
+      EVENTS["Event Stream<br/>(2,723 events: filing, inspection,<br/>renewal, payment, audit, closure)"]
+      RULES["Rule Engine<br/>Active / Dormant / Closed<br/>(12-month / 24-month thresholds)"]
+      CONFLICT["Cross-Source Conflict Detector<br/>(GST=Active vs MCA=Closed)"]
+    end
+
+    subgraph Storage["UBID STORE"]
+      UBID["UBID<br/>(685 unified entities,<br/>anchored to PAN/GSTIN)"]
+      AUDIT["Reviewer Audit Trail<br/>(confirm / reject decisions,<br/>fully reversible)"]
+    end
+
+    subgraph AI["AZURE GPT-4.1 NARRATION (grounded)"]
+      AI_LINK["AI Linkage Rationale<br/>(per pair)"]
+      AI_LIFE["AI Lifecycle Verdict<br/>(per UBID)"]
+      AI_QUERY["AI Query Summary<br/>(per Smart Query result)"]
+      AI_BRIEF["AI Morning Briefing<br/>(dashboard)"]
+    end
+
+    subgraph UI["FRONTEND (React + Vite)"]
+      DASH["/ Dashboard"]
+      RES["/resolution<br/>(reviewer queue)"]
+      ENT["/entities · /entity/&lt;UBID&gt;"]
+      INS["/insights<br/>(Smart Query)"]
+    end
+
+    GST --> BLOCK
+    MCA --> BLOCK
+    UDYAM --> BLOCK
+    OTHERS -.future.-> BLOCK
+
+    BLOCK --> DETERM
+    BLOCK --> PROB
+    DETERM --> TIER
+    PROB --> TIER
+    TIER --> UBID
+
+    EVENTS --> RULES
+    RULES --> CONFLICT
+    CONFLICT --> UBID
+    UBID --> AUDIT
+
+    UBID --> AI_LINK
+    UBID --> AI_LIFE
+    UBID --> AI_QUERY
+    UBID --> AI_BRIEF
+
+    AI_LINK --> RES
+    AI_LIFE --> ENT
+    AI_QUERY --> INS
+    AI_BRIEF --> DASH
+
+    UBID --> RES
+    UBID --> ENT
+    UBID --> INS
+
+    classDef source fill:#fef3c7,stroke:#d97706,color:#92400e
+    classDef resolve fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a
+    classDef lifecycle fill:#dcfce7,stroke:#15803d,color:#14532d
+    classDef storage fill:#f3e8ff,stroke:#6b21a8,color:#581c87
+    classDef ai fill:#fce7f3,stroke:#be185d,color:#831843
+    classDef ui fill:#f1f5f9,stroke:#334155,color:#0f172a
+
+    class GST,MCA,UDYAM,OTHERS source
+    class BLOCK,DETERM,PROB,TIER resolve
+    class EVENTS,RULES,CONFLICT lifecycle
+    class UBID,AUDIT storage
+    class AI_LINK,AI_LIFE,AI_QUERY,AI_BRIEF ai
+    class DASH,RES,ENT,INS ui
