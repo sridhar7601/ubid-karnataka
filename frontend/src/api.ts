@@ -109,7 +109,15 @@ export async function getLinkageResults(params?: {
   const res = await fetch(`${BASE}/linkage/results?${search}`);
   if (!res.ok) throw new Error(await res.text());
   const data = await res.json();
-  return data.results ?? data;
+  const raw = data.results ?? data;
+  return raw.map((p: any) => ({
+    ...p,
+    overall_score: p.match_score ?? p.overall_score ?? 0,
+    name_similarity: p.match_details?.name_similarity ?? p.name_similarity ?? 0,
+    address_similarity: p.match_details?.address_similarity ?? p.address_similarity ?? 0,
+    pan_match: p.match_details?.pan_match ?? p.pan_match ?? false,
+    pincode_match: p.match_details?.pincode_match ?? p.pincode_match ?? false,
+  }));
 }
 
 export async function reviewLinkage(id: number, decision: 'confirmed' | 'rejected'): Promise<LinkagePair> {
